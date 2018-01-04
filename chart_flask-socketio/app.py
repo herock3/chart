@@ -29,29 +29,32 @@ def index_page():
 @socketio.on('on_connect', namespace='/socket')
 def socket_connect():
    print("connecting.....")
-
+   temperature = 0
+   humidity=0
+   sound=0
+   pm=0
+   count = 0
+   time = 0
+   while True:
+       socketio.sleep(3)
+       temperature = temperature + 1
+       humidity = humidity + 1
+       sound = sound + 1
+       pm = pm + 1
+       count = count + 1
+       time = time + 1
+       print('温度:' + str(temperature))
+       socketio.emit('message_response_history', {'temperature': temperature,'humidity': humidity,'sound':sound,'pm':pm}, namespace='/socket')
+       socketio.emit('message_response_predict', {'rul':count, 'cycle':time} ,namespace='/socket')
 
 @socketio.on('on_message_predict', namespace='/socket')
 def message_predict():
    print("predicting.....")
-   count = 1
-   time = 1
-   while True:
-       socketio.sleep(5)
-       count = count + 1
-       time = time + 1
-       print(count)
-       socketio.emit('message_response_predict', {'rul':count, 'cycle':time} ,namespace='/socket')
 
 @socketio.on('on_message_history', namespace='/socket')
-def message_predict():
+def message_history():
    print("history.....")
-   temperature = 1
-   while True:
-       socketio.sleep(3)
-       temperature = temperature + 1
-       print('温度:'+str(temperature))
-       socketio.emit('message_response_history', {'rul':temperature} ,namespace='/socket')
+
 
 @socketio.on('on_disconnect', namespace='/socket')
 def socket_disconnect():

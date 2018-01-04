@@ -3,7 +3,7 @@
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
 <link rel="shortcut icon" href="icon.jpg" type="image/x-icon" />
-<title>预测性运维1</title>
+<title>预测性运维</title>
 <style type="text/css">
 
 .row {
@@ -28,8 +28,12 @@
 <body style="background-color:#ece5e6">
 <script src="http://libs.baidu.com/jquery/2.1.4/jquery.min.js"></script>
 <script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/socket.io/1.3.5/socket.io.min.js"></script>
-<script src="https://cdn.hcharts.cn/highcharts/highcharts.js"></script>
-<script src="http://code.highcharts.com/highcharts-more.js"></script>
+<link rel="icon" href="https://static.jianshukeji.com/highcharts/images/favicon.ico">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="https://img.hcharts.cn/highcharts/highcharts.js"></script>
+<script src="https://img.hcharts.cn/highcharts/highcharts-more.js"></script>
+<script src="https://img.hcharts.cn/highcharts/modules/exporting.js"></script>
+<script src="https://img.hcharts.cn/highcharts-plugins/highcharts-zh_CN.js"></script>
 <link rel="stylesheet" href="https://cdn.bootcss.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
 
 <div id="main" class="container" style="background-color:#ece5e6;">
@@ -126,23 +130,23 @@ function load_predict(){
  })
 }
 
-//温度-定义图形
-temperature_chart=new Highcharts.Chart({
-   chart: {
-            renderTo: 'temperature',
+
+ //温度图形绘制
+temperature_chart= Highcharts.chart('temperature',{
+        chart: {
             type: 'gauge',
             events: {
-                load: load_history
+                load: load_temperature
                 },
             plotBackgroundColor: null,
             plotBackgroundImage: null,
             plotBorderWidth: 0,
             plotShadow: false
         },
-     title: {
-            text: '温度表'
+        title: {
+            text: '温度测量仪'
         },
-       pane: {
+        pane: {
             startAngle: -150,
             endAngle: 150,
             background: [{
@@ -174,7 +178,8 @@ temperature_chart=new Highcharts.Chart({
                 innerRadius: '103%'
             }]
         },
-         yAxis: {
+        // the value axis
+        yAxis: {
             min: 0,
             max: 200,
             minorTickInterval: 'auto',
@@ -192,7 +197,7 @@ temperature_chart=new Highcharts.Chart({
                 rotation: 'auto'
             },
             title: {
-                text: 'km/h'
+                text: '℃'
             },
             plotBands: [{
                 from: 0,
@@ -210,27 +215,28 @@ temperature_chart=new Highcharts.Chart({
         },
         series: [{
             name: 'Speed',
-            data: [80],
+            data: [],
             tooltip: {
-                valueSuffix: '摄氏度'
+                valueSuffix: ' ℃'
             }
         }]
     });
+	
+	
 
- //湿度-定义图形
-humidity_chart=new Highcharts.Chart({
-   chart: {
-            renderTo: 'humidity',
+//湿度图形绘制
+humidity_chart= Highcharts.chart('humidity',{
+        chart: {
             type: 'gauge',
             plotBackgroundColor: null,
             plotBackgroundImage: null,
             plotBorderWidth: 0,
             plotShadow: false
         },
-     title: {
-            text: '湿度表'
+        title: {
+            text: '湿度测量仪'
         },
-       pane: {
+        pane: {
             startAngle: -150,
             endAngle: 150,
             background: [{
@@ -262,7 +268,8 @@ humidity_chart=new Highcharts.Chart({
                 innerRadius: '103%'
             }]
         },
-         yAxis: {
+        // the value axis
+        yAxis: {
             min: 0,
             max: 200,
             minorTickInterval: 'auto',
@@ -280,7 +287,7 @@ humidity_chart=new Highcharts.Chart({
                 rotation: 'auto'
             },
             title: {
-                text: 'RH%'
+                text: '%rh'
             },
             plotBands: [{
                 from: 0,
@@ -298,27 +305,26 @@ humidity_chart=new Highcharts.Chart({
         },
         series: [{
             name: 'Speed',
-            data: [80],
+            data: [],
             tooltip: {
-                valueSuffix: ' km/h'
+                valueSuffix: ' %rh'
             }
         }]
     });
 
-//噪音表-定义图形
-sound_chart=new Highcharts.Chart({
-   chart: {
-            renderTo: 'sound',
+//噪音图形绘制
+sound_chart= Highcharts.chart('sound',{
+        chart: {
             type: 'gauge',
             plotBackgroundColor: null,
             plotBackgroundImage: null,
             plotBorderWidth: 0,
             plotShadow: false
         },
-     title: {
-            text: '噪音表'
+        title: {
+            text: '噪音测量仪'
         },
-       pane: {
+        pane: {
             startAngle: -150,
             endAngle: 150,
             background: [{
@@ -350,7 +356,8 @@ sound_chart=new Highcharts.Chart({
                 innerRadius: '103%'
             }]
         },
-         yAxis: {
+        // the value axis
+        yAxis: {
             min: 0,
             max: 200,
             minorTickInterval: 'auto',
@@ -386,26 +393,25 @@ sound_chart=new Highcharts.Chart({
         },
         series: [{
             name: 'Speed',
-            data: [80],
+            data: [],
             tooltip: {
-                valueSuffix: '摄氏度'
+                valueSuffix: ' db'
             }
         }]
     });
-//PM2.5表-定义图形
-pm_chart=new Highcharts.Chart({
-   chart: {
-            renderTo: 'pm',
+//PM2.5图形绘制
+pm_chart= Highcharts.chart('pm',{
+        chart: {
             type: 'gauge',
             plotBackgroundColor: null,
             plotBackgroundImage: null,
             plotBorderWidth: 0,
             plotShadow: false
         },
-     title: {
-            text: 'PM2.5表'
+        title: {
+            text: 'PM2.5测量仪'
         },
-       pane: {
+        pane: {
             startAngle: -150,
             endAngle: 150,
             background: [{
@@ -437,7 +443,8 @@ pm_chart=new Highcharts.Chart({
                 innerRadius: '103%'
             }]
         },
-         yAxis: {
+        // the value axis
+        yAxis: {
             min: 0,
             max: 200,
             minorTickInterval: 'auto',
@@ -455,7 +462,7 @@ pm_chart=new Highcharts.Chart({
                 rotation: 'auto'
             },
             title: {
-                text: 'km/h'
+                text: 'μg/m³'
             },
             plotBands: [{
                 from: 0,
@@ -473,29 +480,21 @@ pm_chart=new Highcharts.Chart({
         },
         series: [{
             name: 'Speed',
-            data: [80],
+            data: [],
             tooltip: {
-                valueSuffix: ' μm/m3 '
+                valueSuffix: ' μg/m³'
             }
         }]
     });
-
- //IOT 数据加载
- //预测-数据加载
-function load_history(){
-  socket.on('message_response_history', function(msg) {
-  temperature_chart.hideLoading();
-    temperature_chart.series[0].addPoint([msg.temperature], true, false);
- })
-}
- //图形绘制
- temperature_chart.showLoading();
- humidity_chart.showLoading();
- sound_chart.showLoading();
-pm_chart.showLoading();
-
-
-
+	//加载数据
+	function load_temperature(){
+		socket.on('message_response_history', function(msg) {
+			temperature_chart.series[0].update({data:[msg.temperature]});
+			humidity_chart.series[0].update({data:[msg.humidity]});
+			sound_chart.series[0].update({data:[msg.sound]});
+			pm_chart.series[0].update({data:[msg.pm]});
+		})
+	}
    //on close page.
   $(window).on("beforeunload", function() {
     socket.emit('on_disconnect');
