@@ -1,15 +1,9 @@
 
-import time
-import  json
+import math
 from threading import Lock
 
 from flask import Flask, render_template, session, request
-from flask_socketio import SocketIO, emit
-
-# Set this variable to "threading", "eventlet" or "gevent" to test the
-# different async modes, or leave it set to None for the application to choose
-# the best option based on installed packages.
-
+from flask_socketio import SocketIO
 
 async_mode = None
 
@@ -24,7 +18,7 @@ thread_lock = Lock()
 
 @app.route('/')
 def index_page():
-    return render_template('index.html')
+    return render_template('index2.html')
 
 @socketio.on('on_connect', namespace='/socket')
 def socket_connect():
@@ -36,12 +30,12 @@ def socket_connect():
    count = 0
    time = 0
    while True:
-       socketio.sleep(3)
+       socketio.sleep(6)
        temperature = temperature + 1
        humidity = humidity + 1
        sound = sound + 1
        pm = pm + 1
-       count = count + 1
+       count = math.sin(pm)
        time = time + 1
        print('温度:' + str(temperature))
        socketio.emit('message_response_history', {'temperature': temperature,'humidity': humidity,'sound':sound,'pm':pm}, namespace='/socket')
