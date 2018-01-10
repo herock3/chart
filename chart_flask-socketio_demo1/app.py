@@ -18,7 +18,7 @@ thread_lock = Lock()
 
 @app.route('/')
 def index_page():
-    return render_template('index2.html')
+    return render_template('index.html')
 
 @socketio.on('on_connect', namespace='/socket')
 def socket_connect():

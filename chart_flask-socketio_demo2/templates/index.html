@@ -1,0 +1,115 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<script src="http://libs.baidu.com/jquery/2.1.4/jquery.min.js"></script>
+<script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/socket.io/1.3.5/socket.io.min.js"></script>
+<link rel="icon" href="https://static.jianshukeji.com/highcharts/images/favicon.ico">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script type="text/javascript" src="http://maps.google.cn/maps/api/js?sensor=true"></script>
+<script type="text/javascript" src="../static/js/gmaps.js"></script>
+<script type="text/javascript" src="../static/js/charts.js"></script>
+<script src="https://img.hcharts.cn/highcharts/highcharts.js"></script>
+<script src="https://img.hcharts.cn/highcharts/highcharts-more.js"></script>
+<script src="https://img.hcharts.cn/highcharts/modules/solid-gauge.js"></script>
+<script src="https://img.hcharts.cn/highcharts/modules/exporting.js"></script>
+<script src="https://img.hcharts.cn/highcharts-plugins/highcharts-zh_CN.js"></script>
+<link rel="stylesheet" href="../static/css/style.css" type="text/css">
+<link rel="stylesheet" href="https://cdn.bootcss.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+<title>预测性运维</title>
+
+  <script type="text/javascript">
+    var map;
+    $(document).ready(function(){
+      map = new GMaps({
+        div: '#map',
+        lat: 31.199601,
+        lng: 120.204961,
+        zoom: 10
+      });
+
+     map.addMarker(
+      {
+      lat: 31.1183333, //31.217676, 120.421137
+      lng: 120.2726446,
+      title: 'WG1',
+      infoWindow: {
+      content: '<p>水闸1: 开口1.7米</p>'},
+      icon:'../static/images/wg.png'
+      });
+
+     map.addMarker(
+      {
+      lat: 31.217676, //31.217676, 120.421137
+      lng: 120.421137,
+      title: 'WG2',
+      infoWindow: {
+      content: '<p>水闸2: 开口2米</p>'},
+      icon:'../static/images/wg.png'
+      });
+    });
+  </script>
+
+</head>
+<body>
+
+<header class="header black-bg">
+    <a href="index.html" class="logo"><b>Cisco</b></a>
+</header>
+
+<div class = "row">
+    <div class="col-md-8">
+        <div id="map"></div>
+    </div>
+
+
+    <div class="col-md-4" id="dashboards">
+        <div class = "row">
+            <div class="col-md-6 col-sm-4 mb">
+                <div id="temperature"  style="width:200px;height: 220px;"></div>
+            </div>
+
+            <div class="col-md-6 mb">
+              <div id="humidity" style="width:200px;height: 220px;"></div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-md-6 mb">
+              <div id="sound" style="width:200px;height: 220px;"></div>
+            </div>
+
+            <div class="col-md-6">
+              <div id="pm" style="width:200px;height: 220px;"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+
+    <div id="predict_div" class="col-md-8"  style=""></div>
+
+    <div class="col-md-4">
+        <div class="row" id="status">
+           
+        </div>
+    </div>
+</div>
+</div>
+
+<footer class="site-footer">
+    <div class="text-center">
+        CISCO Copyright 2018<a href="https://www.cisco.com/c/zh_cn/index.html" target="_blank"></a>
+        <a href="index.html#" class="go-top">
+        <i class="fa fa-angle-up"></i>
+        </a>
+     </div>
+</footer>
+
+</body>
+</html>
+
+
+
+
