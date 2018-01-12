@@ -1,5 +1,5 @@
 ﻿//1 加载地图
-var load_map= function(){
+var load_map = function(){
 				 var map;
 				  map = new GMaps({
 					div: '#map',
@@ -37,30 +37,29 @@ var load_IOT=function(){
                 socket.emit('on_message_predict');
                 socket.emit('on_message_history');
 				var globalChart=Highcharts.setOptions({
-                chart: {
-                    backgroundColor: '#0000'
-                },
-                 credits: {
-                    enabled: false
-                },
-                exporting:{
-                    enabled:false
-                },
-                colors: ['#F62366', '#9DFF02', '#0CCDD6'],
-                title: {
-                    style: {
-                        color: 'silver'
+                    chart: {
+                        backgroundColor: '#0000'
+                    },
+                     credits: {
+                        enabled: false
+                    },
+                    exporting:{
+                        enabled:false
+                    },
+                    colors: ['#F62366', '#9DFF02', '#0CCDD6'],
+                    title: {
+                        style: {
+                            color: 'silver'
+                        }
+                    },
+                    tooltip: {
+                        style: {
+                            color: 'silver'
+                        }
                     }
-                },
-                tooltip: {
-                    style: {
-                        color: 'silver'
-                    }
-                }
             });
-                
             //预测-定义图形
-           var chart_predict= Highcharts.chart('predict_mode',{
+           predict_chart= Highcharts.chart('predict_div',{
              chart: {
               defaultSeriesType: 'spline',
               events: {
@@ -99,97 +98,80 @@ var load_IOT=function(){
         //预测-绘图
         chart_predict.showLoading();
 
-        //预测_模型-数据加载
+        //预测-数据加载
         function load_predict(){
           socket.on('message_response_predict', function(msg) {
           chart_predict.hideLoading();
             chart_predict.series[0].addPoint([msg.cycle, msg.rul], true, false);
          })
         }
+
+
          //温度图形绘制
         temperature_chart= Highcharts.chart('temperature',{
                 chart: {
-                    type: 'gauge',
-                    plotBackgroundColor: null,
-                    plotBackgroundImage: null,
-                    plotBorderWidth: 0,
-                    plotShadow: false
+                    type: 'solidgauge'
                 },
-                title: {
-                    text: '温度测量仪'
-                },
+                title: null,
                 pane: {
-                    startAngle: -150,
-                    endAngle: 150,
-                    background: [{
-                        backgroundColor: {
-                            linearGradient: { x1: 0, y1: 0, x2: 0, y2: 1 },
-                            stops: [
-                                [0, '#FFF'],
-                                [1, '#333']
-                            ]
-                        },
-                        borderWidth: 0,
-                        outerRadius: '109%'
-                    }, {
-                        backgroundColor: {
-                            linearGradient: { x1: 0, y1: 0, x2: 0, y2: 1 },
-                            stops: [
-                                [0, '#333'],
-                                [1, '#FFF']
-                            ]
-                        },
-                        borderWidth: 1,
-                        outerRadius: '107%'
-                    }, {
-                        // default background
-                    }, {
-                        backgroundColor: '#DDD',
-                        borderWidth: 0,
-                        outerRadius: '105%',
-                        innerRadius: '103%'
-                    }]
+                    center: ['50%', '85%'],
+                    size: '140%',
+                    startAngle: -90,
+                    endAngle: 90,
+                    background: {
+                        backgroundColor: (Highcharts.theme && Highcharts.theme.background2) || '#EEE',
+                        innerRadius: '60%',
+                        outerRadius: '100%',
+                        shape: 'arc'
+                    }
                 },
-                // the value axis
-                yAxis: {
+                tooltip: {
+                    enabled: false
+                },
+                plotOptions: {
+                    solidgauge: {
+                        dataLabels: {
+                            y: 5,
+                            borderWidth: 0,
+                            useHTML: true
+                        }
+                    }
+                }
+                yAxis:{
                     min: 0,
                     max: 200,
-                    minorTickInterval: 'auto',
-                    minorTickWidth: 1,
-                    minorTickLength: 10,
-                    minorTickPosition: 'inside',
-                    minorTickColor: '#666',
-                    tickPixelInterval: 30,
-                    tickWidth: 2,
-                    tickPosition: 'inside',
-                    tickLength: 10,
-                    tickColor: '#666',
-                    labels: {
-                        step: 2,
-                        rotation: 'auto'
-                    },
                     title: {
-                        text: '℃'
+                        text: '速度'
                     },
-                    plotBands: [{
-                        from: 0,
-                        to: 120,
-                        color: '#55BF3B' // green
-                    }, {
-                        from: 120,
-                        to: 160,
-                        color: '#DDDF0D' // yellow
-                    }, {
-                        from: 160,
-                        to: 200,
-                        color: '#DF5353' // red
-                    }]
+                     stops: [
+                        [0.1, '#55BF3B'], // green
+                        [0.5, '#DDDF0D'], // yellow
+                        [0.9, '#DF5353'] // red
+                    ],
+                    lineWidth: 0,
+                    minorTickInterval: null,
+                    tickPixelInterval: 400,
+                    tickWidth: 0,
+                    title: {
+                        y: -70
+                    },
+                    labels: {
+                        y: 16
+                    }
+                },
+                credits: {
+                    enabled: false
                 },
                 series: [{
-                    name: 'Speed',
-                    data: [],
+                    name: '速度',
+                    data: [80],
+                    dataLabels: {
+                        format: '<div style="text-align:center"><span style="font-size:25px;color:' +
+                        ((Highcharts.theme && Highcharts.theme.contrastTextColor) || 'black') + '">{y}</span><br/>' +
+                        '<span style="font-size:12px;color:silver">km/h</span></div>'
+                    },
                     tooltip: {
-                        valueSuffix: ' ℃'
+                        valueSuffix: ' km/h'
                     }
                 }]
             });

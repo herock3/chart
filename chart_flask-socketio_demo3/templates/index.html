@@ -9,9 +9,6 @@
 <script type="text/javascript" src="http://maps.google.cn/maps/api/js?sensor=true"></script>
 <script type="text/javascript" src="../static/js/gmaps.js"></script>
 <script type="text/javascript" src="../static/js/charts.js"></script>
-<script type="text/javascript" src="../static/js/echarts.js"></script>
-<script type="text/javascript" src="../static/js/echarts-liquidfill.js"></script>
-<script type="text/javascript" src="../static/js/echarts-liquidfill.min.js"></script>
 <script src="https://img.hcharts.cn/highcharts/highcharts.js"></script>
 <script src="https://img.hcharts.cn/highcharts/highcharts-more.js"></script>
 <script src="https://img.hcharts.cn/highcharts/modules/solid-gauge.js"></script>
@@ -28,14 +25,6 @@
 		 load_IOT_data();
 		 load_alertor();
 		 disconnect();
-        //   var chart1 = echarts.init(document.getElementById('liquidfill-chart'));
-        //   var option = {
-        //     series: [{
-        //         type: 'liquidFill',
-        //         data: [0.6, 0.5, 0.4, 0.3]
-        //     }]
-        // };
-        // chart1.setOption(option);
     });
   </script>
 
@@ -70,14 +59,15 @@
         </div>
     </div>
     <div class="row">
-        <div id="predict_mode" class="col-md-8"></div>
-        <div id="liquidfill-chart" class="col-md-2" style="width=100%; height = 400px"></div>
+        <div id="predict_div" class="col-md-8 " ></div>
         <div id="status" >
-            <div class="col-md-2">
+            <div class="col-md-2 col-sm-offset-1">
                 <div>
                     <h4>状态指示灯1</h4>
                     <div id="preload-01"></div>
                 </div>
+            </div>
+            <div class="col-md-2 col-sm-offset-1">
                 <div>
                     <h4>状态指示灯2</h4>
                     <div id="preload-02" ></div>

@@ -31,7 +31,7 @@ def socket_connect():
    count = 0
    time = 0
    while True:
-       socketio.sleep(3)
+       socketio.sleep(10)
        temperature =int(random.random()*200)
        humidity = int(random.random()*200)
        sound = int(random.random()*200)
