@@ -1,13 +1,8 @@
 html, body{
     font-size: 100%;
-    background: #242f3e;
+    background: #fff;
     font-family: 'Open Sans', sans-serif;
 }
-
-body {
-  background-color: #242f3e;
-}
-
 h1,h2,h3,h4,h5,h6{
     margin:0;              
 }   
@@ -34,10 +29,6 @@ ul,label{
 .black-bg {
     /*background: #68dff0;*/
     border-bottom: 1px solid #c9aa5f;
-}
-
-h4.ins {
-    color: #F4F4F4;
 }
 
 a.logo {
@@ -67,8 +58,8 @@ video.camera {
 }
 
 .hicharts {
-  width: 50%;
-  min-height: 250px;
+  width: 200px;
+  height: 220px;
   float: left;
   padding: 0px;
 }
@@ -85,16 +76,12 @@ video.camera {
 }
 
 .mb {
-  margin-bottom: 15px;
-}
-
-.pt {
-  padding-top: 20px;
+  margin-bottom: 25px;
 }
 
 #map{
     background-size: cover;
-    min-height: 500px;
+    min-height: 430px;
     margin-left: 20px;
     margin-bottom: 10px;
     width: 100%;

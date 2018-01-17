@@ -5,7 +5,6 @@ from threading import Lock
 
 from flask import Flask, render_template, session, request
 from flask_socketio import SocketIO
-
 async_mode = None
 
 app = Flask(__name__)

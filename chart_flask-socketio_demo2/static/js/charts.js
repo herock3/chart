@@ -108,7 +108,7 @@ var load_IOT=function(){
         }
          //温度图形绘制
         temperature_chart= Highcharts.chart('temperature',{
-                chart: {
+              chart: {
                     type: 'gauge',
                     plotBackgroundColor: null,
                     plotBackgroundImage: null,

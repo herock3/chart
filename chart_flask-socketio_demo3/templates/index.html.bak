@@ -1,0 +1,708 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<link rel="icon" href="https://static.jianshukeji.com/highcharts/images/favicon.ico">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>太湖水位</title>
+</head>
+<body>
+<script src="http://libs.baidu.com/jquery/2.1.4/jquery.min.js"></script>
+<script type="text/javascript" src="http://maps.google.cn/maps/api/js?key=AIzaSyAE3qq56jSE9hJ52I0UDfTZcQ2pvxxRhLQ"></script>
+<script src="https://img.hcharts.cn/highcharts/highcharts.js"></script>
+<script src="https://img.hcharts.cn/highcharts/highcharts-more.js"></script>
+<script src="https://img.hcharts.cn/highcharts/modules/solid-gauge.js"></script>
+<script src="https://img.hcharts.cn/highcharts/modules/exporting.js"></script>
+<script src="https://img.hcharts.cn/highcharts-plugins/highcharts-zh_CN.js"></script>
+<script type="text/javascript" src="../static/js/gmaps.js"></script>
+<script type="text/javascript" src="../static/js/gmapstyles.js"></script>
+<!-- <script type="text/javascript" src="../static/js/camera.js"></script> -->
+<!-- <script type="text/javascript" src="../static/js/maps.js"></script> -->
+<link rel="stylesheet" href="../static/css/style.css" type="text/css">
+<link rel="stylesheet" href="https://cdn.bootcss.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+
+<header class="header black-bg">
+    <a href="/" class="logo">
+      <b>  </b>
+      <img src="../static/images/logo.jpg">
+    </a>
+</header>
+
+<div class = "row">
+    <div class="col-md-8">
+        <div id="map"></div>
+        <button id="map_flag">Update</button>
+    </div>
+
+
+    <div class="col-md-4" id="dashboards">
+        <div class = "row">
+            <div class = "hicharts" id="temperature" ></div>
+            <div class = "hicharts" id="humidity"></div>
+        </div>
+
+        <div class="row">
+              <div class = "hicharts" id="sound"></div>
+              <div class = "hicharts" id="pm"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mt">
+
+    <div id="predict_div" class="col-md-8"  style=""></div>
+
+    <div class="col-md-4">
+        <div class="container">
+
+            <div class="row">
+                <div class="col-md-1 col-md-offset-1" id = "LED">
+                    <div id="preload-01"><img src="../static/images/1.1.png" height="50" width="50"/></div>
+                    <h4>警示灯</h4>
+                </div>
+                <div class="col-md-1" id = "Buz">
+                    <div id="preload-02"><img src="../static/images/2.0.png" height="50" width="50" /></div>
+                    <h4>警报器</h4>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+</div>
+
+<script type="text/javascript">
+
+    // Websockets transfer data
+    $(document).ready(function() {
+
+        // Google map definition
+        var map;
+
+        latitude = [30.960152,30.977049,30.955436,30.930301]
+        longitude = [120.459752,120.535368,120.610526,120.582905]
+        watergate = ['WG1','WG2','WG3','WG4']
+        gateopen = [1.6,1.21,0.78,0.5]
+
+        map = new GMaps({
+            div: '#map',
+            lat: 31.000527,
+            lng: 120.508112,
+            zoom: 11,
+            enableNewStyle: true
+            // mapType: "terrain"
+          });
+        
+        var map_styles = new GMaps_styles();
+
+        var data_styles = map_styles.datas('night');
+
+        map.addStyle({
+          styles            : data_styles.styles,
+          styledMapName     : data_styles.mapName,
+          mapTypeId         : 'map_style'
+        });
+        
+        map.setStyle( 'map_style' );
+
+        for (var i = 0; i < latitude.length; i++) {
+            map.addMarker({
+            lat: latitude[i],
+            lng: longitude[i],
+            title: watergate[i],
+            infoWindow: {
+            content: '水闸调整: ' + String(gateopen[i]) + '米'
+            },
+            mouseover: function(){
+                (this.infoWindow).open(this.map, this);
+            },
+            mouseout: function(){
+                this.infoWindow.close();
+            },
+            icon:'../static/images/wg.png'
+            });
+        }
+        ///Websocket
+        var ws = new WebSocket("ws://localhost:8888/wsocket");
+
+        ws.onopen = function() {
+                ws.send("on_connect_socket");
+            };
+            
+        ws.onmessage = function(evt) {
+
+            var msg = JSON.parse(evt.data)
+    
+            if (msg.Type == 'model') {
+                load_model(msg.message)} 
+            else if (msg.Type == 'sensor') {
+                load_sensor(msg.message)}
+            else if (msg.Type == 'jabber') {
+                load_photo(msg)
+                console.log(msg)
+            }
+            else {}
+
+        }
+
+        function update_map(data) {
+            for (var i = 0; i < gateopen.length; i++) {
+                    map.markers[i].infoWindow.setContent(data[i]);
+            }
+        };
+
+        gates = [4,3,1.2,0.5]
+        
+
+        ///格式化2进制日期
+        var formatDateTime = function (date) {  
+            var y = date.getFullYear();  
+            var m = date.getMonth() + 1;  
+            m = m < 10 ? ('0' + m) : m;  
+            var d = date.getDate();  
+            d = d < 10 ? ('0' + d) : d;  
+            var h = date.getHours();  
+            var minute = date.getMinutes();
+            var second = date.getSeconds();
+            minute = minute < 10 ? ('0' + minute) : minute;  
+            second = second < 10 ? ('0' + second) : second;  
+            return y + '-' + m + '-' + d+' '+h+':'+minute+':'+second;  
+        };  
+
+        function load_photo(msg) {
+                
+                if (msg.Type == 'LED') {var status_light = msg.value;} 
+                    else {var status_buzzer = msg.value;}
+
+                if (status_light == 1) {
+                    document.getElementById("preload-01").innerHTML = '<img src="../static/images/1.1.png" height="50" width="50" />';
+                } else {
+                    document.getElementById("preload-01").innerHTML = '<img src="../static/images/1.0.png" height="50" width="50" />';
+                }
+                if (status_buzzer == 1) {
+                    document.getElementById("preload-02").innerHTML = '<img src="../static/images/2.1.png" height="50" width="50" />';
+                } else {
+                    document.getElementById("preload-02").innerHTML = '<img src="../static/images/2.0.png" height="50" width="50" />';
+                }
+            };
+        //模型数据加载
+        function load_model(msg) {
+            var message = JSON.parse(msg)
+            var time = new Date(message.Msg[0].mtime)
+            var dt = formatDateTime(time)
+                chart_predict.hideLoading();
+                chart_predict.series[0].addPoint([dt, message.Msg[0].density], true, false);
+                chart_predict.series[1].addPoint([dt, message.Msg[0].temperature], true, false);
+                chart_predict.series[2].addPoint([dt, message.Msg[0].velocity], true, false);
+                chart_predict.series[3].addPoint([dt, message.Msg[0].wlevel], true, false);
+            };
+        //传感器数据加载
+        function load_sensor(msg) {
+            var message = JSON.parse(msg)
+
+            var Type = message.Type
+            var Value = message.Msg
+             if (Type == 'ddp/hum') { 
+                humidity_chart.series[0].update({
+                data: [Value]
+                });} 
+                else if (Type == 'ddp/temp') {
+                    temperature_chart.series[0].update({
+                    data: [Value]
+                });}
+                else if (Type == 'ddp/air') {
+                pm_chart.series[0].update({
+                    data: [Value]
+                });}
+                else {
+                sound_chart.series[0].update({
+                    data: [Value]
+                });}
+                
+        }
+        //全局
+        Highcharts.setOptions({
+            chart: {
+                backgroundColor: '#0000'
+            },
+            credits: {
+                enabled: false
+            },
+            exporting: {
+                enabled: false
+            },
+            colors: ['#F62366', '#9DFF02', '#0CCDD6'],
+            title: {
+                style: {
+                    color: 'silver'
+                }
+            },
+            tooltip: {
+                style: {
+                    color: 'silver'
+                }
+            }
+        });
+        //预测-定义图形
+        chart_predict = Highcharts.chart({
+            chart: {
+                renderTo: 'predict_div',
+                defaultSeriesType: 'spline',
+            },
+            title: {
+                text: '模型数据'
+            },
+            tooltip: {
+                formatter: function() {
+                    return 'cycle:' + this.x + ',' + this.series.name + ' : ' + this.y;
+                } 
+            },
+            xAxis: {
+                allowDecimals: false,
+                title: {
+                    text: 'cycle'
+                }
+            },
+            yAxis: {
+                minPadding: 0.2,
+                maxPadding: 0.2,
+                title: {
+                    text: '预测数据',
+                    margin: 20
+                }
+            },
+            plotOptions:{
+                series:{
+                    turboThreshold: 200//页面最多显示值
+                }
+            },
+            series: [{
+                name: 'density',
+                data: []
+            }, {
+                name: 'temperature',
+                data: []
+            }, {
+                name: 'velocity',
+                data: []
+            }, {
+                name: 'wlevel',
+                data: []
+            }]
+        });
+        //预测-绘图
+        chart_predict.showLoading();
+        //温度图形绘制
+        temperature_chart = Highcharts.chart('temperature', {
+            chart: {
+                type: 'gauge',
+                plotBackgroundColor: null,
+                plotBackgroundImage: null,
+                plotBorderWidth: 0,
+                plotShadow: false
+            },
+            title: {
+                text: '温度测量仪'
+            },
+            pane: {
+                startAngle: -150,
+                endAngle: 150,
+                background: [{
+                    backgroundColor: {
+                        linearGradient: {
+                            x1: 0,
+                            y1: 0,
+                            x2: 0,
+                            y2: 1
+                        },
+                        stops: [
+                            [0, '#FFF'],
+                            [1, '#333']
+                        ]
+                    },
+                    borderWidth: 0,
+                    outerRadius: '109%'
+                }, {
+                    backgroundColor: {
+                        linearGradient: {
+                            x1: 0,
+                            y1: 0,
+                            x2: 0,
+                            y2: 1
+                        },
+                        stops: [
+                            [0, '#333'],
+                            [1, '#FFF']
+                        ]
+                    },
+                    borderWidth: 1,
+                    outerRadius: '107%'
+                }, {
+                    // default background
+                }, {
+                    backgroundColor: '#DDD',
+                    borderWidth: 0,
+                    outerRadius: '105%',
+                    innerRadius: '103%'
+                }]
+            },
+            // the value axis
+            yAxis: {
+                min: 0,
+                max: 200,
+                minorTickInterval: 'auto',
+                minorTickWidth: 1,
+                minorTickLength: 10,
+                minorTickPosition: 'inside',
+                minorTickColor: '#666',
+                tickPixelInterval: 30,
+                tickWidth: 2,
+                tickPosition: 'inside',
+                tickLength: 10,
+                tickColor: '#666',
+                labels: {
+                    step: 2,
+                    rotation: 'auto'
+                },
+                title: {
+                    text: '℃'
+                },
+                plotBands: [{
+                    from: 0,
+                    to: 120,
+                    color: '#55BF3B' // green
+                }, {
+                    from: 120,
+                    to: 160,
+                    color: '#DDDF0D' // yellow
+                }, {
+                    from: 160,
+                    to: 200,
+                    color: '#DF5353' // red
+                }]
+            },
+            series: [{
+                name: 'Speed',
+                data: [],
+                tooltip: {
+                    valueSuffix: ' ℃'
+                }
+            }]
+        });
+        //湿度图形绘制
+        humidity_chart = Highcharts.chart('humidity', {
+            chart: {
+                type: 'gauge',
+                plotBackgroundColor: null,
+                plotBackgroundImage: null,
+                plotBorderWidth: 0,
+                plotShadow: false
+            },
+            title: {
+                text: '湿度测量仪'
+            },
+            pane: {
+                startAngle: -150,
+                endAngle: 150,
+                background: [{
+                    backgroundColor: {
+                        linearGradient: {
+                            x1: 0,
+                            y1: 0,
+                            x2: 0,
+                            y2: 1
+                        },
+                        stops: [
+                            [0, '#FFF'],
+                            [1, '#333']
+                        ]
+                    },
+                    borderWidth: 0,
+                    outerRadius: '109%'
+                }, {
+                    backgroundColor: {
+                        linearGradient: {
+                            x1: 0,
+                            y1: 0,
+                            x2: 0,
+                            y2: 1
+                        },
+                        stops: [
+                            [0, '#333'],
+                            [1, '#FFF']
+                        ]
+                    },
+                    borderWidth: 1,
+                    outerRadius: '107%'
+                }, {
+                    // default background
+                }, {
+                    backgroundColor: '#DDD',
+                    borderWidth: 0,
+                    outerRadius: '105%',
+                    innerRadius: '103%'
+                }]
+            },
+            // the value axis
+            yAxis: {
+                min: 0,
+                max: 200,
+                minorTickInterval: 'auto',
+                minorTickWidth: 1,
+                minorTickLength: 10,
+                minorTickPosition: 'inside',
+                minorTickColor: '#666',
+                tickPixelInterval: 30,
+                tickWidth: 2,
+                tickPosition: 'inside',
+                tickLength: 10,
+                tickColor: '#666',
+                labels: {
+                    step: 2,
+                    rotation: 'auto'
+                },
+                title: {
+                    text: '%rh'
+                },
+                plotBands: [{
+                    from: 0,
+                    to: 120,
+                    color: '#55BF3B' // green
+                }, {
+                    from: 120,
+                    to: 160,
+                    color: '#DDDF0D' // yellow
+                }, {
+                    from: 160,
+                    to: 200,
+                    color: '#DF5353' // red
+                }]
+            },
+            series: [{
+                name: 'Speed',
+                data: [],
+                tooltip: {
+                    valueSuffix: ' %rh'
+                }
+            }]
+        });
+        //噪音图形绘制
+        sound_chart = Highcharts.chart('sound', {
+            chart: {
+                type: 'gauge',
+                plotBackgroundColor: null,
+                plotBackgroundImage: null,
+                plotBorderWidth: 0,
+                plotShadow: false
+            },
+            title: {
+                text: '噪音测量仪'
+            },
+            pane: {
+                startAngle: -150,
+                endAngle: 150,
+                background: [{
+                    backgroundColor: {
+                        linearGradient: {
+                            x1: 0,
+                            y1: 0,
+                            x2: 0,
+                            y2: 1
+                        },
+                        stops: [
+                            [0, '#FFF'],
+                            [1, '#333']
+                        ]
+                    },
+                    borderWidth: 0,
+                    outerRadius: '109%'
+                }, {
+                    backgroundColor: {
+                        linearGradient: {
+                            x1: 0,
+                            y1: 0,
+                            x2: 0,
+                            y2: 1
+                        },
+                        stops: [
+                            [0, '#333'],
+                            [1, '#FFF']
+                        ]
+                    },
+                    borderWidth: 1,
+                    outerRadius: '107%'
+                }, {
+                    // default background
+                }, {
+                    backgroundColor: '#DDD',
+                    borderWidth: 0,
+                    outerRadius: '105%',
+                    innerRadius: '103%'
+                }]
+            },
+            // the value axis
+            yAxis: {
+                min: 0,
+                max: 200,
+                minorTickInterval: 'auto',
+                minorTickWidth: 1,
+                minorTickLength: 10,
+                minorTickPosition: 'inside',
+                minorTickColor: '#666',
+                tickPixelInterval: 30,
+                tickWidth: 2,
+                tickPosition: 'inside',
+                tickLength: 10,
+                tickColor: '#666',
+                labels: {
+                    step: 2,
+                    rotation: 'auto'
+                },
+                title: {
+                    text: 'db'
+                },
+                plotBands: [{
+                    from: 0,
+                    to: 120,
+                    color: '#55BF3B' // green
+                }, {
+                    from: 120,
+                    to: 160,
+                    color: '#DDDF0D' // yellow
+                }, {
+                    from: 160,
+                    to: 200,
+                    color: '#DF5353' // red
+                }]
+            },
+            series: [{
+                name: 'Speed',
+                data: [],
+                tooltip: {
+                    valueSuffix: ' db'
+                }
+            }]
+        });
+        //PM2.5图形绘制
+        pm_chart = Highcharts.chart('pm', {
+            chart: {
+                type: 'gauge',
+                plotBackgroundColor: null,
+                plotBackgroundImage: null,
+                plotBorderWidth: 0,
+                plotShadow: false
+            },
+            title: {
+                text: 'PM2.5测量仪'
+            },
+            pane: {
+                startAngle: -150,
+                endAngle: 150,
+                background: [{
+                    backgroundColor: {
+                        linearGradient: {
+                            x1: 0,
+                            y1: 0,
+                            x2: 0,
+                            y2: 1
+                        },
+                        stops: [
+                            [0, '#FFF'],
+                            [1, '#333']
+                        ]
+                    },
+                    borderWidth: 0,
+                    outerRadius: '109%'
+                }, {
+                    backgroundColor: {
+                        linearGradient: {
+                            x1: 0,
+                            y1: 0,
+                            x2: 0,
+                            y2: 1
+                        },
+                        stops: [
+                            [0, '#333'],
+                            [1, '#FFF']
+                        ]
+                    },
+                    borderWidth: 1,
+                    outerRadius: '107%'
+                }, {
+                    // default background
+                }, {
+                    backgroundColor: '#DDD',
+                    borderWidth: 0,
+                    outerRadius: '105%',
+                    innerRadius: '103%'
+                }]
+            },
+            // the value axis
+            yAxis: {
+                min: 0,
+                max: 200,
+                minorTickInterval: 'auto',
+                minorTickWidth: 1,
+                minorTickLength: 10,
+                minorTickPosition: 'inside',
+                minorTickColor: '#666',
+                tickPixelInterval: 30,
+                tickWidth: 2,
+                tickPosition: 'inside',
+                tickLength: 10,
+                tickColor: '#666',
+                labels: {
+                    step: 2,
+                    rotation: 'auto'
+                },
+                title: {
+                    text: 'μg/m³'
+                },
+                plotBands: [{
+                    from: 0,
+                    to: 120,
+                    color: '#55BF3B' // green
+                }, {
+                    from: 120,
+                    to: 160,
+                    color: '#DDDF0D' // yellow
+                }, {
+                    from: 160,
+                    to: 200,
+                    color: '#DF5353' // red
+                }]
+            },
+            series: [{
+                name: 'Speed',
+                data: [],
+                tooltip: {
+                    valueSuffix: ' μg/m³'
+                }
+            }]
+        });
+
+        ws.onerror = function(e) {
+            console.log(e)
+            reconnect();
+        };
+
+        ws.onclose = function() {
+            console.log("onclose restart connection")
+            reconnect();
+        };
+
+    });
+</script>
+
+<footer class="site-footer">
+    <div class="text-center">
+        ©Copyright 2018 Cisco<a href="https://www.cisco.com/c/zh_cn/index.html" target="_blank"></a>
+        <a href="index.html#" class="go-top">
+        <i class="fa fa-angle-up"></i>
+        </a>
+     </div>
+</footer>
+
+</body>
+</html>

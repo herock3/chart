@@ -1,62 +1,40 @@
+import tornado.escape
+import tornado.ioloop
+import tornado.options
+import tornado.web
+import os.path
 
-import math
-import random
-from threading import Lock
+from tornado.options import define, options
+from handlers import *
 
-from flask import Flask, render_template, session, request
-from flask_socketio import SocketIO
+define("port", default=8888, help="run on the given port", type=int)
 
-async_mode = None
+class Application(tornado.web.Application):
+    def __init__(self):
+        handlers = [
+            ("/", MainHandler),
+            (r"/wsocket", Socket_Sender),
+            (r"/api/model/([0-9]+)", Strategy_Handler),
+            (r"/api/model/output/", ModelOutputs_Handler),
+            (r"/api/led/([0-9]+)", LED_Handler),
+            (r"/api/buz/([0-9]+)", Buz_Handler),
+            (r"/api/video/([0-9]+)", Live_Handler),
+        ]
+        settings = dict(
+            cookie_secret="tornado_secret", 
+            template_path=os.path.join(os.path.dirname(__file__), "templates"),
+            static_path=os.path.join(os.path.dirname(__file__), "static"),
+            xsrf_cookies=False,
+            debug = True,
+        )
+        tornado.web.Application.__init__(self, handlers, **settings)
 
-app = Flask(__name__)
-app.config['SECRET_KEY'] = 'secret!'
-socketio = SocketIO(app, async_mode=async_mode)
-
-
-thread = None
-thread_lock = Lock()
-
-
-@app.route('/')
-def index_page():
-    return render_template('index.html')
-
-@socketio.on('on_connect', namespace='/socket')
-def socket_connect():
-   print("connecting.....")
-   temperature = 0
-   humidity=0
-   sound=0
-   pm=0
-   count = 0
-   time = 0
-   while True:
-       socketio.sleep(10)
-       temperature =int(random.random()*200)
-       humidity = int(random.random()*200)
-       sound = int(random.random()*200)
-       pm =int(random.random()*200)
-       count = math.sin(pm)
-       time = time + 1
-       status_light=random.randint(0,1)
-       status_buzzer=random.randint(0,1)
-       print('温度:' + str(temperature))
-       socketio.emit('message_response_history', {'temperature': temperature,'humidity': humidity,'sound':sound,'pm':pm}, namespace='/socket')
-       socketio.emit('message_response_predict', {'rul':count, 'cycle':time} ,namespace='/socket')
-       socketio.emit('message_response_status', {'status_light': status_light, 'status_buzzer': status_buzzer},
-                     namespace='/socket')
-@socketio.on('on_message_predict', namespace='/socket')
-def message_predict():
-   print("predicting.....")
-
-@socketio.on('on_message_history', namespace='/socket')
-def message_history():
-   print("history.....")
+def main():
+    tornado.options.parse_command_line()
+    app = Application()
+    app.listen(options.port)
+    tornado.ioloop.IOLoop.instance().start()
 
 
-@socketio.on('on_disconnect', namespace='/socket')
-def socket_disconnect():
-    print("disconnect")
-
-if __name__ == '__main__':
-    socketio.run(app, debug=True)
+if __name__ == "__main__":
+    main()
